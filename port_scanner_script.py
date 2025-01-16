@@ -1,5 +1,7 @@
 import socket
+import threading
 import sys
+from queue import Queue
 from datetime import datetime
 
 target=input("Enter the target IP or hostname:")
@@ -11,40 +13,53 @@ except socket.gaierror:
     sys.exit()
 
 
-#Port range
 start_port = int(input("Enter the starting port: "))
 end_port = int(input("Enter the ending port: "))
 
-# Display scan details
+queue = Queue()
+
+open_ports = []
+
 print(f"\nScanning Target: {target_ip}")
 print(f"Port Range: {start_port}-{end_port}")
 print(f"Starting the scan...\n")
 
-
-try:
-    # Record the start time
-    scan_start = datetime.now()
-
-    #Perform the scan
-    for port in range (start_port , end_port+1):
+def scan_port (port):
+    try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(1) # time out for connection it is in seconds in this case 1
-            #try connection to the port
-            result = s.connect_ex((target_ip, port))
-            
-            if result == 0:
-                print (f"Port {port}: OPEN ")
+            s.settimeout(1)
+            if s.connect_ex((target_ip, port)) == 0:
+                print(f"Port {port}:OPEN")
+                open_ports.append(port)
+    except Exception:
+        pass
 
-            s.close()
+def threader():
+    while not queue.empty():
+        port = queue.get()
+        scan_port(port)
+        queue.task_done()
 
-    scan_end = datetime.now()
+start_time = datetime.now()
 
-    duration = scan_end - scan_start
-    print (f"\nScan completed in {duration}.")
-except KeyboardInterrupt:
-    print("\nScan abort by user.")
-    sys.exit()
-except socket.error:
-    print("Error: Unable to connect to the network.")
-    sys.exit()
+for port in range(start_port, end_port + 1):
+    queue.put(port)
+
+threads=[]
+
+for _ in range(50):
+    thread = threading.Thread(target=threader)
+    threads.append(thread)
+    thread.start()
+
+queue.join()
+
+end_time = datetime.now()
+
+
+print ("\nScan Completed!")
+print (f"Open ports: {open_ports}")
+print (f"Time taken: {end_time - start_time}")
+
+
 
