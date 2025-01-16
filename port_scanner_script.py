@@ -1,6 +1,7 @@
 import socket
 import threading
 import sys
+from tqdm import tqdm
 from queue import Queue
 from datetime import datetime
 
@@ -48,7 +49,7 @@ def threader():
 
 start_time = datetime.now()
 
-for port in range(start_port, end_port + 1):
+for port in tqdm(range(start_port, end_port + 1),desc="Scanning Ports"):
     queue.put(port)
 
 threads=[]
@@ -66,7 +67,7 @@ end_time = datetime.now()
 print ("\nScan Completed!")
 print (f"Open ports: {open_ports}")
 print (f"Time taken: {end_time - start_time}")
-
+    
 ask_file = input("Do you want to write the output in the file?")
 if ask_file == 'Y'or ask_file == 'y':
     file_name = input("Enter file name")
