@@ -34,6 +34,12 @@ def scan_port (port):
     except Exception:
         pass
 
+def write_file(file_name):
+    with open(file_name , 'w') as f:
+        f.write(f"Open Ports for {target_ip}:\n")
+        for port in open_ports:
+            f.write(f"Port {port}: OPEN\n")
+            
 def threader():
     while not queue.empty():
         port = queue.get()
@@ -60,6 +66,15 @@ end_time = datetime.now()
 print ("\nScan Completed!")
 print (f"Open ports: {open_ports}")
 print (f"Time taken: {end_time - start_time}")
+
+ask_file = input("Do you want to write the output in the file?")
+if ask_file == 'Y'or ask_file == 'y':
+    file_name = input("Enter file name")
+    write_file(file_name)
+    print("Output written in {file_name}")
+else:
+    print("Exiting..")
+
 
 
 
